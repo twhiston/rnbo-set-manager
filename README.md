@@ -13,10 +13,12 @@ The easiest way to install this tool is to copy the built binary to your rpi.
 Otherwise you will need to install the go toolchain and compile it yourself.
 
 
-You can curl the latest release from your pi
-`curl https://github.com/twhiston/rnbo-set-manager/releases/latest/rnbo-set-manager.zip`
+You can curl a version from your pi
+`wget https://github.com/twhiston/rnbo-set-manager/releases/${version}/rnbo-set-manager.zip`
+for example
+`wget https://github.com/twhiston/rnbo-set-manager/releases/download/v1.0.0-alpha/rnbo-set-manager.zip`
 and then unzip it and move it to somewhere in your path
-`unzip rnbo-set-manager.zip && sudo mv ./rnbo-set-manager /usr/bin/path`
+`unzip rnbo-set-manager.zip && sudo mv ./rnbo-set-manager /usr/local/bin`
 
 If you try to export a set and you get the error
 
