@@ -1,11 +1,11 @@
 /*
 Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/spf13/cobra"
 )
@@ -13,15 +13,26 @@ import (
 // importCmd represents the import command
 var importCmd = &cobra.Command{
 	Use:   "import",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Import set data into rnbo runner database",
+	Long: `This command will import a previously exported Set to the rnbo database.
+	Note that it does not recreate any of the compiled objects, or ensure their ID's are valid
+	So it expects that you have not destroyed these objects etc.
+	By default the command will import your Set with a NEW set ID. You can tell it to use the original ID by setting the original-id flag.
+	Use this at your own risk!`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("import called")
+		fmt.Println("Import Set")
+		if len(args) != 1 {
+			log.Fatal("Must specify set name to import as first argument to command")
+		}
+		rnboSet := args[0]
+		fmt.Println("RNBO Set: " + rnboSet)
+
+		overwrite, _ := cmd.Flags().GetBool("original-id")
+		fmt.Println("Import with original Id: ", overwrite)
+
+		//timestamp, _ := cmd.Flags().GetString("timestamp")
+		//If timestamp is blank then look in the folder and find the appropriate timestamp
+
 	},
 }
 
@@ -36,5 +47,6 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// importCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	importCmd.Flags().Bool("original-id", false, "Use the original set ID instead of creating a new one. Use at your own risk! Probably a good idea to backup your db first!")
+	importCmd.Flags().String("timestamp", "", "Specify a specifically timestamped export of the set to import, if blank will get most recent")
 }

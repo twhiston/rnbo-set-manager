@@ -25,7 +25,7 @@ var exportCmd = &cobra.Command{
 	Short: "export set data from the rnbo sqlite database",
 	Long:  `Export everything that you need to recreate a set from the rnbo database`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Export")
+		fmt.Println("Export Set")
 		if len(args) != 1 {
 			log.Fatal("Must specify set name to export as first argument to command")
 		}
@@ -233,6 +233,6 @@ func init() {
 	// is called directly, e.g.:
 	// exportCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	exportCmd.Flags().String("rnbo-version", "", "Set the rnbo runner version, leave blank to autodetect")
-	exportCmd.Flags().String("db", "~/Documents/rnbo/oscqueryrunner.sqlite", "Specify the location to the db")
-	exportCmd.Flags().String("dir", "~/Documents/rnbo-set-manager", "Specify save file location")
+	// exportCmd.Flags().String("db", "~/Documents/rnbo/oscqueryrunner.sqlite", "Specify the location to the db")
+	// exportCmd.Flags().String("dir", "~/Documents/rnbo-set-manager", "Specify save file location")
 }
