@@ -10,11 +10,13 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"time"
 
 	"github.com/twhiston/rnbo-set-manager/rnbo"
 
 	"github.com/antandros/go-dpkg"
+	"github.com/antandros/go-pkgparser/model"
 	_ "github.com/glebarez/go-sqlite"
 	"github.com/spf13/cobra"
 )
@@ -23,7 +25,9 @@ import (
 var exportCmd = &cobra.Command{
 	Use:   "export",
 	Short: "export set data from the rnbo sqlite database",
-	Long:  `Export everything that you need to recreate a set from the rnbo database`,
+	Long: `Export everything that you need to recreate a set from the rnbo database
+	It is important to note that this will export data from the patcher table, so it expects
+	that when you import patchers with the correct ID's will already exist in the database`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Export Set")
 		if len(args) != 1 {
@@ -36,13 +40,28 @@ var exportCmd = &cobra.Command{
 
 		if rnboVer == "" {
 			rnboVer = determineRnboVersion()
+			if rnboVer == "" {
+				log.Fatal("Could not determine version of rnbooscquery, are you running this on an rpi?")
+			}
 		}
 		fmt.Println("RNBO version: " + rnboVer)
 
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		rnboDB, _ := cmd.Flags().GetString("db")
+		if rnboDB == "" {
+			//~/Documents/rnbo/oscqueryrunner.sqlite
+			rnboDB = filepath.Join(homeDir, "Documents", "rnbo", "oscqueryrunner.sqlite")
+		}
 		fmt.Println("RNBO db: " + rnboDB)
 
 		exportDir, _ := cmd.Flags().GetString("dir")
+		if exportDir == "" {
+			exportDir = filepath.Join(homeDir, "Documents", "rnbo-set-manager-data")
+		}
 		fmt.Println("Export Base Dir: " + exportDir)
 
 		timeNow := time.Now().Format("20060102-150405")
@@ -100,16 +119,18 @@ var exportCmd = &cobra.Command{
 }
 
 func determineRnboVersion() string {
+	version := ""
+
 	packages, err := dpkg.GetPackages()
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(err)
-	resp, err := json.MarshalIndent(packages, "", "\t")
-	fmt.Println(err)
-	fmt.Println(string(resp))
-	//TODO: make this work!
-	return "1.3.3-alpha.0"
+
+	idx := slices.IndexFunc(packages, func(c model.Package) bool { return c.PackageName == "rnbooscquery" })
+	if idx != -1 {
+		version = packages[idx].Version
+	}
+	return version
 }
 
 func getSet(db *sql.DB, setId string, version string) rnbo.Set {
@@ -224,15 +245,5 @@ func init() {
 	rootCmd.AddCommand(exportCmd)
 
 	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// exportCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// exportCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	exportCmd.Flags().String("rnbo-version", "", "Set the rnbo runner version, leave blank to autodetect")
-	// exportCmd.Flags().String("db", "~/Documents/rnbo/oscqueryrunner.sqlite", "Specify the location to the db")
-	// exportCmd.Flags().String("dir", "~/Documents/rnbo-set-manager", "Specify save file location")
 }
